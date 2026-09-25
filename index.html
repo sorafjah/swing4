@@ -74,7 +74,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
 .stage[data-stage=practice1] .band{background:var(--p1)}
 .stage[data-stage=practice2] .band{background:var(--p2)}
 .stage[data-stage=forest] .band{background:var(--forest)}
-.stage[data-stage=city] .band{background:var(--city)}
+.stage[data-stage=sky] .band{background:var(--city)}
 .stage[data-stage=grass] .band{background:var(--grass)}
 .stage .nm{display:block;font-size:22px;font-weight:700;margin:10px 0 2px}
 .stage .lv{display:block;font-size:16px;font-weight:700;letter-spacing:.06em}
@@ -105,7 +105,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
 </script>
 </head>
 <body>
-<!-- build: 2026-09-25 v4 -->
+<!-- build: 2026-09-25 v5 -->
 <canvas id="three"></canvas>
 <canvas id="lines"></canvas>
 
@@ -133,7 +133,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
     <button class="stage" data-stage="practice2"><div class="band">↔️</div><span class="nm">ひだり・みぎ</span><span class="lv">れんしゅう 2</span><span class="ds">まとを ねらって<br>さゆうに いとを だす</span></button>
     <div class="divider"></div>
     <button class="stage" data-stage="forest"><div class="band">🌳</div><span class="nm">もり</span><span class="lv">かんたん ●○○</span><span class="ds">おおきな きの<br>あいだを とぶ</span></button>
-    <button class="stage" data-stage="city"><div class="band">🏙️</div><span class="nm">ビルのまち</span><span class="lv">ふつう ●●○</span><span class="ds">ビルの まちを<br>とびまわる</span></button>
+    <button class="stage" data-stage="sky"><div class="band">🎈</div><span class="nm">ふうせんのそら</span><span class="lv">ふつう ●●○</span><span class="ds">たかい ふうせんに<br>いとを つけて とぶ</span></button>
     <button class="stage" data-stage="grass"><div class="band">🌱</div><span class="nm">くさむら</span><span class="lv">むずかしい ●●●</span><span class="ds">むしに なって とぶ。<br>くさが ゆれる</span></button>
   </div>
 </section>
@@ -159,7 +159,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
     </div>
   </div>
 </section>
-<div id="ver">v2026-09-25</div>
+<div id="ver">v5 2026-09-25</div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -194,14 +194,21 @@ function mulberry32(seed) { return function () { seed |= 0; seed = seed + 0x6D2B
    ========================================================= */
 const FEEL = {
   gravity: 18,        // 重力
-  autoReelTo: 22,     // 自動巻き取りで ここまで糸を短くする
-  reelSpeed: 7,       // 巻き取る速さ（m/秒）
-  reelAccel: 9,       // 巻き取り中にアンカーへ引っぱる強さ
+  pullRatio: 0.5,     // 糸がくっついたら、長さをこの割合まで一気に縮める（＝ぐいっと引っぱる）
+  pullMin: 9,         // 縮めるときの最短の長さ
+  pullSpeed: 26,      // 糸が縮む速さ（m/秒）
+  pullAccel: 38,      // 引っぱられるときの加速
+  minPull: 0.35,      // ちょんと押しただけでも、最低この秒数は引っぱる
+  hangGravity: 0.45,  // とんでいる途中、てっぺん付近の重力の倍率（ふわーっ）
+  hangBand: 8,        // 上下の速さがこれより小さいと「てっぺん付近」
+  airDrag: 0.6,       // 糸なしで飛んでいるときの前後左右の減速（速さに強弱がつく）
+  pullTopSpeed: 58,   // この速さに近いほど引っぱりが弱くなる（ずっと最高速にならないように）
+  highPref: 0.7,      // 高いところのアンカーを優先する強さ
   swingAssist: 8,     // ぶらさがり中に前へ押す強さ
   releaseBoost: 5,    // 離したときに前へ足す速さ
   releaseUp: 4,       // 離したときに上へ足す速さ
   yankGround: 16,     // 地面から糸を出したときの引っぱり
-  yankAir: 8,         // 空中で糸がついたときの引っぱり
+  yankAir: 13,        // 空中で糸がついたときの引っぱり
   maxSpeed: 60,       // 最高速度
   sideDeg: 40,        // 「ひだり」「みぎ」で狙う向き（正面からの角度）
   pitchDeg: 42,       // 狙う向きの上向き角度
@@ -227,21 +234,21 @@ const STAGES = {
     helpGoal: 'ひかっている「まと」が ある ほうの ボタンを おそう。\nひだり、みぎ、ひだり… と こうごに とぶよ！',
   },
   forest: {
-    name: 'もり', mode: 'lr', lateralDamp: 0.35, course: 'forest', seed: 11, L: 560, items: 15,
-    coneDeg: 50, rangeMin: 5, rangeMax: 82, idealDist: 32, gravityScale: 0.85, sway: false, swayAmp: 0,
-    sky: 0xA9DCF2, ground: 0x6FA35A, next: 'city',
+    name: 'もり', mode: 'lr', lateralDamp: 0.35, course: 'forest', itemY: [14, 34], seed: 11, L: 560, items: 15,
+    coneDeg: 50, rangeMin: 9, rangeMax: 85, idealDist: 38, gravityScale: 0.85, sway: false, swayAmp: 0,
+    sky: 0xA9DCF2, ground: 0x6FA35A, next: 'sky',
     helpTitle: 'もり（かんたん）',
     helpGoal: 'おおきな きの えだに いとを つけて とぼう。\nとちゅうの ★は ちかくを とおると とれるよ！',
   },
-  city: {
-    name: 'ビルのまち', mode: 'lr', lateralDamp: 0.35, course: 'city', seed: 23, L: 700, items: 15,
-    coneDeg: 45, rangeMin: 5, rangeMax: 78, idealDist: 34, gravityScale: 1.0, sway: false, swayAmp: 0,
-    sky: 0x8FD3F4, ground: 0x9AA3AE, next: 'grass',
-    helpTitle: 'ビルのまち（ふつう）',
-    helpGoal: 'ビルの かどや かべに いとを つけて とぼう。\nとちゅうの ★は ちかくを とおると とれるよ！',
+  sky: {
+    name: 'ふうせんのそら', mode: 'lr', lateralDamp: 0.35, course: 'sky', itemY: [18, 42], seed: 23, L: 700, items: 15,
+    coneDeg: 48, rangeMin: 8, rangeMax: 88, idealDist: 38, gravityScale: 0.95, sway: false, swayAmp: 0, bob: 2.5,
+    sky: 0x8FD3F4, ground: 0x8CCB6A, next: 'grass',
+    helpTitle: 'ふうせんのそら（ふつう）',
+    helpGoal: 'ふうせんの ひもの むすびめに いとを つけて とぼう。\nふうせんに ぶつかっても ぽよんと はねるだけだよ！',
   },
   grass: {
-    name: 'くさむら', mode: 'lr', lateralDamp: 0.35, course: 'grass', seed: 37, L: 700, items: 15,
+    name: 'くさむら', mode: 'lr', lateralDamp: 0.35, course: 'grass', itemY: [22, 44], seed: 37, L: 700, items: 15,
     coneDeg: 42, rangeMin: 4, rangeMax: 68, idealDist: 30, gravityScale: 1.0, sway: true, swayAmp: 0.08,
     sky: 0xF6E7B8, ground: 0x7B6A45, next: null,
     helpTitle: 'くさむら（むずかしい）',
@@ -361,8 +368,8 @@ const targetTex = canvasTex(128, 128, (g) => {
    ========================================================= */
 const P = { pos: new V3(0, PR, 0), vel: new V3(), grounded: true };
 // R.hand: 1=ひだり手, -1=みぎ手 / R.button: 押しているボタン（1,-1,0）
-const R = { phase: 'none', anchor: null, anchorPos: new V3(), length: 0, t: 0, dur: 0, missDir: new V3(), holding: false, hand: -1, button: null, lastSide: -1 };
-let D = STAGES.city, stageId = 'city';
+const R = { attachT: 0, pullTo: 0, phase: 'none', anchor: null, anchorPos: new V3(), length: 0, t: 0, dur: 0, missDir: new V3(), holding: false, hand: -1, button: null, lastSide: -1 };
+let D = STAGES.forest, stageId = 'forest';
 let state = 'title';     // title | help | playing | result
 let resumeTo = 'playing';
 let yaw = 0;
@@ -390,14 +397,14 @@ function buildWorld(id) {
   disposeWorld();
   stageId = id; D = STAGES[id];
   const rnd = mulberry32(D.seed);
-  const W = { group: new THREE.Group(), boxes: [], segs: [], stalks: [], anchors: [], items: [], targets: [], L: D.L, stalkMesh: null, flowerMesh: null, flowers: [] };
+  const W = { group: new THREE.Group(), boxes: [], segs: [], balloons: [], stringLines: null, balloonMesh: null, stalks: [], anchors: [], items: [], targets: [], L: D.L, stalkMesh: null, flowerMesh: null, flowers: [] };
   world = W;
   scene.add(W.group);
   scene.background.setHex(D.sky); scene.fog.color.setHex(D.sky);
   groundMat.color.setHex(D.ground);
 
   if (D.course === 'boulevard') buildBoulevard(W, rnd);
-  else if (D.course === 'city') buildCity(W, rnd);
+  else if (D.course === 'sky') buildSky(W, rnd);
   else if (D.course === 'forest') buildForest(W, rnd);
   else buildGrass(W, rnd);
 
@@ -479,16 +486,67 @@ function buildBoulevard(W, rnd) {
   }
 }
 
-/* ビルのまち（間隔を広くとる） */
-function buildCity(W, rnd) {
-  const cell = 40, bl = [];
-  for (let gx = -3; gx <= 3; gx++) for (let gz = -2; gz * cell < W.L + 100; gz++) {
-    const cx = gx * cell + (rnd() - 0.5) * 8, cz = gz * cell + (rnd() - 0.5) * 8;
-    if (Math.abs(cx) < 18 && Math.abs(cz) < 18) continue;
-    const w = 12 + rnd() * 8, d = 12 + rnd() * 8;
-    bl.push({ cx, cz, w, d, h: 30 + rnd() * 45 + (Math.abs(cx) > 90 ? 15 : 0) });
+/* ふうせんのそら：たかい所に ふうせんが うかんでいる。ぶつかる物が少ない */
+function buildSky(W, rnd) {
+  const bs = [];
+  for (let k = 0; k < 5000 && bs.length < 170; k++) {
+    const x = (rnd() * 2 - 1) * 110, z = -20 + rnd() * (W.L + 120);
+    if (Math.abs(x) < 10 && Math.abs(z) < 10) continue;
+    let ok = true;
+    for (const b of bs) { if ((b.x - x) ** 2 + (b.z - z) ** 2 < 22 * 22) { ok = false; break; } }
+    if (ok) bs.push({ x, z, y0: 40 + rnd() * 32, y: 0, r: 3.2 + rnd() * 1.4, ph: rnd() * 6.28, f: 0.5 + rnd() * 0.5 });
   }
-  makeBuildings(W, bl, rnd, [0xE9D8B4, 0xB9C7DA, 0xDDA8A0, 0xA9C9A4, 0xCBB9DC, 0xF1E4C6, 0x9FB3C8]);
+  W.balloons = bs;
+  W.balloonMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshLambertMaterial({ color: 0xffffff }), bs.length);
+  W.balloonMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  const pal = [0xFF6B6B, 0xFFC93C, 0x4DB6F0, 0x7ED957, 0xC59BFF, 0xFF9EB5, 0xFF9F43];
+  bs.forEach((b, i) => { _col.setHex(pal[Math.floor(rnd() * pal.length)]); W.balloonMesh.setColorAt(i, _col); });
+  if (W.balloonMesh.instanceColor) W.balloonMesh.instanceColor.needsUpdate = true;
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(bs.length * 6), 3));
+  W.stringLines = new THREE.LineSegments(sg, new THREE.LineBasicMaterial({ color: 0x5A6275 }));
+  W.stringLines.frustumCulled = false;
+  bs.forEach(b => W.anchors.push({ bal: b }));
+  // 雲（かざり。当たり判定なし）
+  const clouds = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0xFFFFFF, flatShading: true }), 90);
+  for (let i = 0; i < 90; i++) {
+    _q.identity(); const sc = 8 + rnd() * 10;
+    _p.set((rnd() * 2 - 1) * 260, 95 + rnd() * 40, -80 + rnd() * (W.L + 260)); _s.set(sc * 1.8, sc * 0.6, sc); _m4.compose(_p, _q, _s); clouds.setMatrixAt(i, _m4);
+  }
+  // 地面の小さな花（かざり）
+  const flowers = new THREE.InstancedMesh(new THREE.SphereGeometry(0.8, 6, 4), new THREE.MeshLambertMaterial({ color: 0xffffff }), 500);
+  for (let i = 0; i < 500; i++) {
+    _q.identity(); _p.set((rnd() * 2 - 1) * 140, 0.3, -60 + rnd() * (W.L + 160)); _s.set(1, 0.6, 1); _m4.compose(_p, _q, _s); flowers.setMatrixAt(i, _m4);
+    _col.setHex([0xFFFFFF, 0xFFE066, 0xFF8FB1][i % 3]); flowers.setColorAt(i, _col);
+  }
+  if (flowers.instanceColor) flowers.instanceColor.needsUpdate = true;
+  W.group.add(W.balloonMesh, W.stringLines, clouds, flowers);
+  updateBalloons(0);
+}
+function updateBalloons(t) {
+  const W = world; if (!W || !W.balloonMesh) return;
+  const pos = W.stringLines.geometry.attributes.position.array;
+  _q.identity();
+  W.balloons.forEach((b, i) => {
+    b.y = b.y0 + Math.sin(t * b.f + b.ph) * D.bob;
+    _p.set(b.x, b.y, b.z); _s.set(b.r, b.r * 1.15, b.r); _m4.compose(_p, _q, _s); W.balloonMesh.setMatrixAt(i, _m4);
+    const k = i * 6, sw = Math.sin(t * b.f * 0.7 + b.ph) * 1.5;
+    pos[k] = b.x; pos[k + 1] = b.y - b.r * 1.15; pos[k + 2] = b.z;
+    pos[k + 3] = b.x + sw; pos[k + 4] = 0; pos[k + 5] = b.z;
+  });
+  W.balloonMesh.instanceMatrix.needsUpdate = true;
+  W.stringLines.geometry.attributes.position.needsUpdate = true;
+}
+/* ふうせんに ぶつかったら ぽよんと はねる */
+function collideBalloon(b) {
+  const dx = P.pos.x - b.x, dz = P.pos.z - b.z, R2 = b.r * 1.1 + PR;
+  if (Math.abs(dx) > R2 || Math.abs(dz) > R2) return;
+  const dy = (P.pos.y - b.y) / 1.1, d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  if (d >= R2 || d < 1e-6) return;
+  const nx = dx / d, ny = dy / d, nz = dz / d;
+  const vn = P.vel.x * nx + P.vel.y * ny + P.vel.z * nz;
+  pushOut(nx, ny, nz, R2 - d);
+  if (vn < -3) { P.vel.x -= nx * vn * 0.6; P.vel.y -= ny * vn * 0.6; P.vel.z -= nz * vn * 0.6; if (bounceCool <= 0) { sfxBoing(); bounceCool = 0.3; } }
 }
 
 /* もり（間隔を広くとる） */
@@ -598,6 +656,7 @@ function updateSway(t) {
 }
 function getAnchorPos(a, out) {
   if (a.st) return stalkPoint(a.st, a.u * a.st.h, out);
+  if (a.bal) return out.set(a.bal.x, a.bal.y - a.bal.r * 1.15 - 0.4, a.bal.z);
   return out.set(a.x, a.y, a.z);
 }
 
@@ -607,7 +666,8 @@ function buildItems(W, rnd) {
   const wide = D.course === 'boulevard' ? 5 : 20;
   for (let i = 0; i < n; i++) {
     const z = 50 + (W.L - 90) * (i / Math.max(1, n - 1));
-    const p = new V3((rnd() * 2 - 1) * wide, 7 + rnd() * 14, z);
+    const [y0, y1] = D.itemY || [7, 21];
+    const p = new V3((rnd() * 2 - 1) * wide, lerp(y0, y1, rnd()), z);
     const mesh = new THREE.Mesh(starGeo, starMat); mesh.position.copy(p); mesh.scale.setScalar(1.3);
     W.group.add(mesh);
     W.items.push({ p, mesh, got: false, spin: rnd() * 6 });
@@ -650,7 +710,7 @@ function findTarget(side) {
     if (a.target && a.idx < targetIndex) continue;
     getAnchorPos(a, _ap);
     const vx = _ap.x - px, vy = _ap.y - py, vz = _ap.z - pz;
-    if (vy < 2) continue;
+    if (vy < (py > 30 ? -8 : 2)) continue;
     const d2 = vx * vx + vy * vy + vz * vz;
     if (d2 < D.rangeMin * D.rangeMin || d2 > D.rangeMax * D.rangeMax) continue;
     const lat = vx * lx + vz * lz;
@@ -660,7 +720,7 @@ function findTarget(side) {
     if (c < cosCone) continue;
     const ahead = (vx * fx + vz * fz) / d;
     if (ahead < -0.1) continue;
-    const score = c + ahead * 1.0 - Math.abs(d - D.idealDist) / D.idealDist * 0.6 + (a.target && a.idx === targetIndex ? 2 : 0);
+    const score = c + ahead * 1.0 - Math.abs(d - D.idealDist) / D.idealDist * 0.6 + clamp(vy / D.idealDist, 0, 1.2) * FEEL.highPref + (a.target && a.idx === targetIndex ? 2 : 0);
     if (score > bestScore) { bestScore = score; best = a; }
   }
   return best;
@@ -697,13 +757,15 @@ function shoot(button) {
 function release(button) {
   if (button !== undefined && button !== R.button) return;   // ほかのボタンで出した糸は離さない
   R.holding = false;
-  if (R.phase === 'attached') {
-    R.phase = 'none';
-    const sp = P.vel.length();
-    if (sp > 1) P.vel.addScaledVector(P.vel, FEEL.releaseBoost / sp);
-    P.vel.y += FEEL.releaseUp;
-    sfxRelease();
-  } else if (R.phase === 'shooting') R.phase = 'none';
+  // すぐ離しても、糸がくっついて しっかり引っぱられてから はなれる（minPull）
+  if (R.phase === 'attached' && R.attachT >= FEEL.minPull) letGo();
+}
+function letGo() {
+  R.phase = 'none';
+  const sp = P.vel.length();
+  if (sp > 1) P.vel.addScaledVector(P.vel, FEEL.releaseBoost / sp);
+  P.vel.y += FEEL.releaseUp;
+  sfxRelease();
 }
 const _n = new V3(), _t = new V3(), _f = new V3();
 function updateRope(dt) {
@@ -711,17 +773,20 @@ function updateRope(dt) {
     R.t += dt;
     getAnchorPos(R.anchor, R.anchorPos);
     if (R.t >= R.dur) {
-      if (!R.holding) { R.phase = 'none'; return; }
-      R.phase = 'attached';
+      R.phase = 'attached'; R.attachT = 0;
       const d = R.anchorPos.distanceTo(P.pos);
-      R.length = Math.max(MIN_ROPE, d * (P.grounded ? 0.82 : 0.9));
+      R.length = Math.max(MIN_ROPE, d);
+      R.pullTo = Math.max(FEEL.pullMin, d * FEEL.pullRatio);
       _n.subVectors(R.anchorPos, P.pos).divideScalar(d || 1);
-      P.vel.addScaledVector(_n, P.grounded ? FEEL.yankGround : FEEL.yankAir);
+      P.vel.addScaledVector(_n, P.grounded ? FEEL.yankGround : FEEL.yankAir * clamp(1 - P.vel.length() / FEEL.pullTopSpeed, 0.1, 1));
       if (P.grounded) P.vel.y += 4;
       P.grounded = false;
       sfxAttach();
       if (R.anchor.target && R.anchor.idx === targetIndex) { R.anchor.hit = true; targetIndex++; flash('ナイス！', 600); sfxItem(); refreshTargets(); }
     }
+  } else if (R.phase === 'attached') {
+    R.attachT += dt;
+    if (!R.holding && R.attachT >= FEEL.minPull) letGo();
   } else if (R.phase === 'miss') {
     R.t += dt;
     if (R.t > 0.32) R.phase = 'none';
@@ -738,16 +803,20 @@ function physics(dt) {
   bounceCool -= dt;
   for (let i = 0; i < SUBSTEPS; i++) {
     const attached = R.phase === 'attached';
-    P.vel.y -= g * h;
+    const pullK = clamp(1 - P.vel.length() / FEEL.pullTopSpeed, 0.08, 1);   // 遅いときほど強く引っぱる
+    // 糸なしで飛んでいるとき、てっぺん付近は重力を弱めて「ふわーっ」
+    const hang = !attached && !P.grounded && Math.abs(P.vel.y) < FEEL.hangBand;
+    P.vel.y -= g * (hang ? FEEL.hangGravity : 1) * h;
     if (attached) {
       getAnchorPos(R.anchor, R.anchorPos);
       _n.subVectors(P.pos, R.anchorPos);
       const dist = _n.length() || 1e-6; _n.divideScalar(dist);
-      if (R.length > FEEL.autoReelTo) {
-        R.length = Math.max(FEEL.autoReelTo, R.length - FEEL.reelSpeed * h);
-        P.vel.addScaledVector(_n, -FEEL.reelAccel * h);
+      // 自動巻き取り：くっついたら ぐいっと 引っぱる
+      if (R.length > R.pullTo) {
+        R.length = Math.max(R.pullTo, R.length - FEEL.pullSpeed * h);
+        P.vel.addScaledVector(_n, -FEEL.pullAccel * pullK * h);
       }
-      if (_n.y < 0.2 && dist > R.length * 0.97) {
+      if (_n.y < 0.2 && dist > R.length * 0.97 && pullK > 0.3) {
         _t.copy(_f).addScaledVector(_n, -_f.dot(_n));
         const tl = _t.length();
         if (tl > 0.1) P.vel.addScaledVector(_t, FEEL.swingAssist * h / tl);
@@ -755,6 +824,7 @@ function physics(dt) {
     }
     P.vel.multiplyScalar(1 - 0.02 * h);
     if (!P.grounded) P.vel.x *= 1 - D.lateralDamp * h;   // 横ブレをおさえて前へ
+    if (!attached && !P.grounded) { P.vel.x *= 1 - FEEL.airDrag * h; P.vel.z *= 1 - FEEL.airDrag * h; }   // 空中では少しずつ減速
     P.pos.addScaledVector(P.vel, h);
     if (attached) {
       _n.subVectors(P.pos, R.anchorPos);
@@ -769,6 +839,7 @@ function physics(dt) {
     P.grounded = false;
     for (const b of world.boxes) collideBox(b);
     for (const s of world.segs) collideSeg(s);
+    for (const b of world.balloons) collideBalloon(b);
     if (P.pos.y < PR) {
       P.pos.y = PR;
       if (P.vel.y < -8) { P.vel.y = -P.vel.y * 0.35; if (bounceCool <= 0) { sfxBounce(); bounceCool = 0.4; } }
@@ -995,7 +1066,8 @@ function tone(freq, dur, type = 'sine', vol = 0.25, delay = 0, f1 = null) {
   o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
 }
 const sfxShoot = () => noiseBurst(0.14, 'highpass', 1500, 6000, 0.5);
-const sfxAttach = () => tone(200, 0.09, 'triangle', 0.3, 0, 90);
+const sfxAttach = () => { tone(200, 0.07, 'triangle', 0.3, 0, 90); tone(180, 0.32, 'sine', 0.22, 0.03, 620); };   // ビョーン
+const sfxBoing = () => tone(300, 0.25, 'sine', 0.3, 0, 120);
 const sfxMiss = () => noiseBurst(0.22, 'bandpass', 3000, 700, 0.25);
 const sfxRelease = () => noiseBurst(0.35, 'bandpass', 400, 2000, 0.35);
 const sfxBounce = () => tone(140, 0.15, 'sine', 0.35, 0, 60);
@@ -1026,8 +1098,8 @@ function helpHTML() {
   const step2 = `<svg viewBox="0 0 200 110"><circle cx="100" cy="12" r="6" fill="#1D2B53"/><line x1="100" y1="12" x2="130" y2="80" stroke="#1D2B53" stroke-width="3"/><path d="M40 70 Q100 118 160 70" stroke="#1D2B53" stroke-width="3" fill="none" stroke-dasharray="6 5"/><path d="M160 70 l-12 -1 m12 1 l-4 11" stroke="#1D2B53" stroke-width="3" fill="none"/>${manSvg(132, 90, -25)}</svg>`;
   const step3 = `<svg viewBox="0 0 200 110"><path d="M20 95 Q90 -10 185 40" stroke="#1D2B53" stroke-width="3" fill="none" stroke-dasharray="6 5"/><path d="M185 40 l-13 -5 m13 5 l-9 10" stroke="#1D2B53" stroke-width="3" fill="none"/>${manSvg(110, 30, 50)}<text x="40" y="40" font-size="22" font-weight="700" fill="#FF6B8A">ビューン</text></svg>`;
   let s = `<div class="step">${step1}<p><span class="num">1</span>ボタンを おす<br>→ いとが でる</p></div>
-           <div class="step">${step2}<p><span class="num">2</span>おしたまま<br>→ ぶらさがる</p></div>
-           <div class="step">${step3}<p><span class="num">3</span>はなす<br>→ とぶ！</p></div>`;
+           <div class="step">${step2}<p><span class="num">2</span>ぐいっと<br>ひっぱられる</p></div>
+           <div class="step">${step3}<p><span class="num">3</span>はなす<br>→ ふわーっと とぶ</p></div>`;
   if (!auto) {
     s += `<div class="step"><svg viewBox="0 0 200 110">${btnSvg('#4DB6F0', 'ひだり').replace(/cx="50"/g, 'cx="48"').replace(/x="50"/g, 'x="48"')}${btnSvg('#FF9F43', 'みぎ').replace(/cx="50"/g, 'cx="152"').replace(/x="50"/g, 'x="152"')}<text x="100" y="22" text-anchor="middle" font-size="16" font-weight="700" fill="#1D2B53">まとの ある ほう</text></svg><p>ひだりの まとは<br>「ひだり」ボタン</p></div>`;
   }
@@ -1189,7 +1261,7 @@ const G = window.__G = {
 /* =========================================================
    メインループ（dtは1/30でクランプ＝dtScale方式）
    ========================================================= */
-buildWorld('city');
+buildWorld('forest');
 resetPlayer();
 let last = performance.now();
 function loop(now) {
@@ -1207,6 +1279,7 @@ function stepGame(dt) {
   if (state === 'help') { lctx.clearRect(0, 0, linesCanvas.width, linesCanvas.height); return; }   // 説明中は一時停止
   G.elapsed += dt;
   if (D.sway) updateSway(G.elapsed);
+  if (D.bob) updateBalloons(G.elapsed);
   if (state === 'playing') {
     if (!finished) playTime += dt;
     const hs = Math.hypot(P.vel.x, P.vel.z);
