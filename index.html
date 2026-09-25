@@ -105,7 +105,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
 </script>
 </head>
 <body>
-<!-- build: 2026-09-25 v5 -->
+<!-- build: 2026-09-25 v7 -->
 <canvas id="three"></canvas>
 <canvas id="lines"></canvas>
 
@@ -159,7 +159,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
     </div>
   </div>
 </section>
-<div id="ver">v5 2026-09-25</div>
+<div id="ver">v7 2026-09-25</div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -214,45 +214,45 @@ const FEEL = {
   pitchDeg: 42,       // 狙う向きの上向き角度
   turnFollow: 1.8,    // 体の向きが進む向きに合わさる速さ
   goalPull: 0.9,      // 体の向きがゴール方向へもどる速さ
-  itemRadius: 8,      // ★を取れる距離（ゆるめ）
+  starPref: 0.35,     // 照準が ★の場所を えらびやすくする強さ
 };
 
 /* ステージ設定（数値だけで調整できるようにまとめる） */
 const STAGES = {
   practice1: {
-    name: 'まっすぐ', mode: 'auto', lateralDamp: 1.5, walls: true, maxSpeed: 48, course: 'boulevard', seed: 5, L: 340, corridor: 16, items: 10,
-    coneDeg: 55, rangeMin: 5, rangeMax: 75, idealDist: 30, gravityScale: 0.85, sway: false, swayAmp: 0,
+    name: 'まっすぐ', mode: 'auto', lateralDamp: 0.8, walls: true, course: 'lane', laneX: 16, gap: 48, seed: 5, L: 420, corridor: 40, items: 0,
+    coneDeg: 55, rangeMin: 8, rangeMax: 90, idealDist: 40, gravityScale: 0.9, sway: false, swayAmp: 0, bob: 0,
     sky: 0xBFE6FA, ground: 0xB9D69C, next: 'practice2',
     helpTitle: 'れんしゅう 1　まっすぐ',
     helpGoal: 'ひだり・みぎは じどうで えらんで くれるよ。\n「おす → はなす」を くりかえして、ゴールまで とぼう！',
   },
   practice2: {
-    name: 'ひだり・みぎ', mode: 'lr', lateralDamp: 1.0, walls: true, maxSpeed: 48, course: 'boulevard', targets: true, seed: 6, L: 460, corridor: 18, targetGap: 48, items: 0,
-    coneDeg: 45, rangeMin: 5, rangeMax: 78, idealDist: 32, gravityScale: 0.85, sway: false, swayAmp: 0,
+    name: 'ひだり・みぎ', mode: 'lr', lateralDamp: 0.8, walls: true, course: 'lane', targets: true, laneX: 18, targetGap: 70, targetY: 44, seed: 6, L: 560, corridor: 40, items: 0,
+    coneDeg: 55, rangeMin: 8, rangeMax: 135, idealDist: 45, gravityScale: 0.9, sway: false, swayAmp: 0, bob: 0,
     sky: 0xE4DBFF, ground: 0xB9D69C, next: 'forest',
     helpTitle: 'れんしゅう 2　ひだり・みぎ',
     helpGoal: 'ひかっている「まと」が ある ほうの ボタンを おそう。\nひだり、みぎ、ひだり… と こうごに とぶよ！',
   },
   forest: {
-    name: 'もり', mode: 'lr', lateralDamp: 0.35, course: 'forest', itemY: [14, 34], seed: 11, L: 560, items: 15,
+    name: 'もり', mode: 'lr', lateralDamp: 0.35, course: 'forest', seed: 11, L: 560, items: 10,
     coneDeg: 50, rangeMin: 9, rangeMax: 85, idealDist: 38, gravityScale: 0.85, sway: false, swayAmp: 0,
     sky: 0xA9DCF2, ground: 0x6FA35A, next: 'sky',
     helpTitle: 'もり（かんたん）',
-    helpGoal: 'おおきな きの えだに いとを つけて とぼう。\nとちゅうの ★は ちかくを とおると とれるよ！',
+    helpGoal: 'おおきな きの えだに いとを つけて とぼう。\n★の ついた えだに いとを つけると ★が とれるよ！',
   },
   sky: {
-    name: 'ふうせんのそら', mode: 'lr', lateralDamp: 0.35, course: 'sky', itemY: [18, 42], seed: 23, L: 700, items: 15,
+    name: 'ふうせんのそら', mode: 'lr', lateralDamp: 0.35, course: 'sky', seed: 23, L: 700, items: 10,
     coneDeg: 48, rangeMin: 8, rangeMax: 88, idealDist: 38, gravityScale: 0.95, sway: false, swayAmp: 0, bob: 2.5,
     sky: 0x8FD3F4, ground: 0x8CCB6A, next: 'grass',
     helpTitle: 'ふうせんのそら（ふつう）',
-    helpGoal: 'ふうせんの ひもの むすびめに いとを つけて とぼう。\nふうせんに ぶつかっても ぽよんと はねるだけだよ！',
+    helpGoal: 'ふうせんの むすびめに いとを つけて とぼう。\n★の ついた ふうせんに いとを つけると ★が とれるよ！',
   },
   grass: {
-    name: 'くさむら', mode: 'lr', lateralDamp: 0.35, course: 'grass', itemY: [22, 44], seed: 37, L: 700, items: 15,
+    name: 'くさむら', mode: 'lr', lateralDamp: 0.35, course: 'grass', seed: 37, L: 700, items: 10,
     coneDeg: 42, rangeMin: 4, rangeMax: 68, idealDist: 30, gravityScale: 1.0, sway: true, swayAmp: 0.08,
     sky: 0xF6E7B8, ground: 0x7B6A45, next: null,
     helpTitle: 'くさむら（むずかしい）',
-    helpGoal: 'むしの おおきさに なって とぼう。\nくさは かぜで ゆれるから、いとの まとも うごくよ！',
+    helpGoal: 'むしに なって とぼう。くさは かぜで ゆれるよ。\n★の ついた くさに いとを つけると ★が とれるよ！',
   },
 };
 const PR = 0.8;
@@ -403,7 +403,7 @@ function buildWorld(id) {
   scene.background.setHex(D.sky); scene.fog.color.setHex(D.sky);
   groundMat.color.setHex(D.ground);
 
-  if (D.course === 'boulevard') buildBoulevard(W, rnd);
+  if (D.course === 'lane') buildLane(W, rnd);
   else if (D.course === 'sky') buildSky(W, rnd);
   else if (D.course === 'forest') buildForest(W, rnd);
   else buildGrass(W, rnd);
@@ -415,75 +415,38 @@ function buildWorld(id) {
   W.group.updateMatrixWorld(true);
 }
 
-/* ビルをまとめて作る（InstancedMesh） */
-function makeBuildings(W, bl, rnd, pal) {
-  const geo = new THREE.BoxGeometry(1, 1, 1); geo.translate(0, 0.5, 0);
-  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, bl.length));
-  const rim = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: 0x3A4A6B }), Math.max(1, bl.length));
-  let bandCount = 0; bl.forEach(b => { for (let y = 6; y < b.h - 2; y += 7) bandCount++; });
-  const band = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: 0x5E7396 }), Math.max(1, bandCount));
-  _q.identity();
-  let bi = 0;
-  bl.forEach((b, i) => {
-    _p.set(b.cx, 0, b.cz); _s.set(b.w, b.h, b.d); _m4.compose(_p, _q, _s); mesh.setMatrixAt(i, _m4);
-    _col.setHex(pal[Math.floor(rnd() * pal.length)]); _col.offsetHSL(0, 0, (rnd() - 0.5) * 0.08); mesh.setColorAt(i, _col);
-    _p.set(b.cx, b.h, b.cz); _s.set(b.w + 0.6, 1, b.d + 0.6); _m4.compose(_p, _q, _s); rim.setMatrixAt(i, _m4);
-    for (let y = 6; y < b.h - 2; y += 7) { _p.set(b.cx, y, b.cz); _s.set(b.w + 0.15, 1.4, b.d + 0.15); _m4.compose(_p, _q, _s); band.setMatrixAt(bi++, _m4); }
-    const minx = b.cx - b.w / 2, maxx = b.cx + b.w / 2, minz = b.cz - b.d / 2, maxz = b.cz + b.d / 2, top = b.h + 1;
-    W.boxes.push({ minx: minx - 0.3, maxx: maxx + 0.3, miny: 0, maxy: top, minz: minz - 0.3, maxz: maxz + 0.3 });
-    if (b.noAnchor) return;
-    if (b.inner) {   // 通りに面したかべだけに糸がつく（れんしゅう用）
-      const fx = b.inner > 0 ? maxx + 0.4 : minx - 0.4;
-      W.anchors.push({ x: fx, y: b.h * 0.55, z: b.cz - b.d / 4 }, { x: fx, y: b.h * 0.55, z: b.cz + b.d / 4 }, { x: fx, y: b.h * 0.8, z: b.cz });
-      return;
-    }
-    for (const ax of [minx - 0.3, b.cx, maxx + 0.3]) for (const az of [minz - 0.3, b.cz, maxz + 0.3]) {
-      if (ax === b.cx && az === b.cz) continue;
-      W.anchors.push({ x: ax, y: top, z: az });
-    }
-    const fy = b.h * 0.6;
-    W.anchors.push({ x: minx - 0.4, y: fy, z: b.cz }, { x: maxx + 0.4, y: fy, z: b.cz }, { x: b.cx, y: fy, z: minz - 0.4 }, { x: b.cx, y: fy, z: maxz + 0.4 });
-  });
-  mesh.count = rim.count = bl.length; band.count = bi;
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  W.group.add(mesh, rim, band);
-}
-
-/* れんしゅう面：まっすぐな大通り */
-function buildBoulevard(W, rnd) {
-  const bl = [], half = D.corridor;
-  for (let z = -40; z < W.L + 80; z += 26) {
-    for (const side of [-1, 1]) for (const row of [0, 1]) {
-      const w = 12 + rnd() * 5, d = 12 + rnd() * 5;
-      const cx = side * (half + 3 + w / 2 + row * 26), cz = z + (rnd() - 0.5) * 4 + row * 13;
-      bl.push({ cx, cz, w, d, h: (row ? 46 : 30) + rnd() * 14, noAnchor: !!D.targets || row === 1, inner: -side });
-    }
-  }
-  makeBuildings(W, bl, rnd, [0xFFD7A8, 0xBFE3F7, 0xFFC6D0, 0xC9EFC4, 0xFFF2B3, 0xE2D4F7]);
-  // 道のライン
-  const line = new THREE.Mesh(new THREE.BoxGeometry(3, 0.1, W.L + 30), new THREE.MeshLambertMaterial({ color: 0xFFFFFF }));
-  line.position.set(0, 0.05, W.L / 2 - 10); W.group.add(line);
-  // まと（れんしゅう2）
-  if (D.targets) {
-    const poleGeo = new THREE.CylinderGeometry(0.9, 1.1, 1, 10); poleGeo.translate(0, 0.5, 0);
-    const poleMat = new THREE.MeshLambertMaterial({ color: 0xF4F4F4 });
-    const discGeo = new THREE.CircleGeometry(5, 40);
-    const ringGeo = new THREE.TorusGeometry(6, 0.5, 8, 40);
+/* れんしゅう面：ひろい野原。高い所に 左右こうごに ふうせん（れんしゅう2は まと）が ならぶ */
+function buildLane(W, rnd) {
+  const bs = [], X = D.laneX;
+  const mk = (x, z, y0, r, noAnchor) => ({ x, z, y0, y: 0, r, ph: rnd() * 6.28, f: 0.5 + rnd() * 0.5, noAnchor });
+  if (!D.targets) {
+    let side = 1;
+    for (let z = 35; z < W.L - 10; z += D.gap, side = -side) bs.push(mk(side * X + (rnd() - 0.5) * 4, z + (rnd() - 0.5) * 6, 46 + rnd() * 8, 4, false));
+  } else {
+    const discGeo = new THREE.CircleGeometry(6, 40);
+    const ringGeo = new THREE.TorusGeometry(7.2, 0.6, 8, 40);
     let side = 1, k = 0;
-    for (let z = 45; z < W.L - 20; z += D.targetGap, side = -side, k++) {
-      const x = side * (half - 1), y = 26;
-      const pole = new THREE.Mesh(poleGeo, poleMat); pole.position.set(x, 0, z); pole.scale.set(1, y - 5, 1); W.group.add(pole);
-      W.segs.push({ ax: x, ay: 0, az: z, bx: x, by: y - 5, bz: z, r: 1.1 });
+    for (let z = 50; z < W.L - 15; z += D.targetGap, side = -side, k++) {
+      const x = side * X, y = D.targetY;
+      bs.push(mk(x, z, y + 11, 4.2, true));   // まとを つるしている ふうせん（糸はつかない）
       const mat = new THREE.MeshBasicMaterial({ map: targetTex, side: THREE.DoubleSide, transparent: true });
-      const disc = new THREE.Mesh(discGeo, mat); disc.position.set(x, y, z);
-      disc.lookAt(0, y, z);
+      const disc = new THREE.Mesh(discGeo, mat); disc.position.set(x, y, z); disc.lookAt(0, y, z - 25);
       const glow = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 }));
       glow.position.copy(disc.position); glow.quaternion.copy(disc.quaternion);
       W.group.add(disc, glow);
-      const a = { x: x - side * 0.3, y, z, target: true, idx: k, side, disc, glow, mat };
+      const a = { x, y, z, target: true, idx: k, side, disc, glow, mat };
       W.targets.push(a); W.anchors.push(a);
     }
   }
+  // 遠くの かざりの ふうせん（糸はつかない）
+  for (let i = 0; i < 16; i++) {
+    const sd = rnd() < 0.5 ? -1 : 1;
+    bs.push(mk(sd * (85 + rnd() * 60), -20 + rnd() * (W.L + 80), 40 + rnd() * 30, 3.2 + rnd() * 1.4, true));
+  }
+  makeBalloons(W, bs, rnd);
+  // 道のライン
+  const line = new THREE.Mesh(new THREE.BoxGeometry(3, 0.1, W.L + 30), new THREE.MeshLambertMaterial({ color: 0xFFFFFF }));
+  line.position.set(0, 0.05, W.L / 2 - 10); W.group.add(line);
 }
 
 /* ふうせんのそら：たかい所に ふうせんが うかんでいる。ぶつかる物が少ない */
@@ -496,6 +459,10 @@ function buildSky(W, rnd) {
     for (const b of bs) { if ((b.x - x) ** 2 + (b.z - z) ** 2 < 22 * 22) { ok = false; break; } }
     if (ok) bs.push({ x, z, y0: 40 + rnd() * 32, y: 0, r: 3.2 + rnd() * 1.4, ph: rnd() * 6.28, f: 0.5 + rnd() * 0.5 });
   }
+  makeBalloons(W, bs, rnd);
+}
+/* ふうせん・ひも・雲・花をまとめて作る */
+function makeBalloons(W, bs, rnd) {
   W.balloons = bs;
   W.balloonMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshLambertMaterial({ color: 0xffffff }), bs.length);
   W.balloonMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -506,9 +473,9 @@ function buildSky(W, rnd) {
   sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(bs.length * 6), 3));
   W.stringLines = new THREE.LineSegments(sg, new THREE.LineBasicMaterial({ color: 0x5A6275 }));
   W.stringLines.frustumCulled = false;
-  bs.forEach(b => W.anchors.push({ bal: b }));
+  bs.forEach(b => { if (!b.noAnchor) W.anchors.push({ bal: b }); });
   // 雲（かざり。当たり判定なし）
-  const clouds = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0xFFFFFF, flatShading: true }), 90);
+  const clouds = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0xFFFFFF, emissive: 0xE8EEF4, flatShading: true }), 90);
   for (let i = 0; i < 90; i++) {
     _q.identity(); const sc = 8 + rnd() * 10;
     _p.set((rnd() * 2 - 1) * 260, 95 + rnd() * 40, -80 + rnd() * (W.L + 260)); _s.set(sc * 1.8, sc * 0.6, sc); _m4.compose(_p, _q, _s); clouds.setMatrixAt(i, _m4);
@@ -661,16 +628,26 @@ function getAnchorPos(a, out) {
 }
 
 /* ★を並べる（ゆるく。取れなくてもOK） */
+/* ★：糸をつける場所（アンカー）の いくつかに ★をつける。★の場所に 糸をつけると とれる */
 function buildItems(W, rnd) {
   const n = D.items; if (!n) return;
-  const wide = D.course === 'boulevard' ? 5 : 20;
+  const cand = [];
   for (let i = 0; i < n; i++) {
-    const z = 50 + (W.L - 90) * (i / Math.max(1, n - 1));
-    const [y0, y1] = D.itemY || [7, 21];
-    const p = new V3((rnd() * 2 - 1) * wide, lerp(y0, y1, rnd()), z);
-    const mesh = new THREE.Mesh(starGeo, starMat); mesh.position.copy(p); mesh.scale.setScalar(1.3);
+    const zt = 50 + (W.L - 90) * (i / Math.max(1, n - 1));
+    cand.length = 0;
+    for (const a of W.anchors) {
+      if (a.target || a.star) continue;
+      getAnchorPos(a, _p);
+      if (Math.abs(_p.z - zt) < 18 && Math.abs(_p.x) < 45 && _p.y > 22) cand.push(a);
+    }
+    if (!cand.length) continue;
+    const a = cand[Math.floor(rnd() * cand.length)];
+    const mesh = new THREE.Mesh(starGeo, starMat); mesh.scale.setScalar(1.7);
+    getAnchorPos(a, mesh.position);
     W.group.add(mesh);
-    W.items.push({ p, mesh, got: false, spin: rnd() * 6 });
+    const it = { a, mesh, got: false, spin: rnd() * 6 };
+    a.star = it;
+    W.items.push(it);
   }
 }
 
@@ -707,7 +684,6 @@ function findTarget(side) {
   const px = P.pos.x, py = P.pos.y, pz = P.pos.z;
   for (const a of world.anchors) {
     if (R.phase === 'attached' && a === R.anchor) continue;
-    if (a.target && a.idx < targetIndex) continue;
     getAnchorPos(a, _ap);
     const vx = _ap.x - px, vy = _ap.y - py, vz = _ap.z - pz;
     if (vy < (py > 30 ? -8 : 2)) continue;
@@ -720,7 +696,7 @@ function findTarget(side) {
     if (c < cosCone) continue;
     const ahead = (vx * fx + vz * fz) / d;
     if (ahead < -0.1) continue;
-    const score = c + ahead * 1.0 - Math.abs(d - D.idealDist) / D.idealDist * 0.6 + clamp(vy / D.idealDist, 0, 1.2) * FEEL.highPref + (a.target && a.idx === targetIndex ? 2 : 0);
+    const score = c + ahead * 1.0 - Math.abs(d - D.idealDist) / D.idealDist * 0.6 + clamp(vy / D.idealDist, 0, 1.2) * FEEL.highPref + (a.target && a.idx === targetIndex ? 2 : 0) + (a.star && !a.star.got ? FEEL.starPref : 0);
     if (score > bestScore) { bestScore = score; best = a; }
   }
   return best;
@@ -782,7 +758,8 @@ function updateRope(dt) {
       if (P.grounded) P.vel.y += 4;
       P.grounded = false;
       sfxAttach();
-      if (R.anchor.target && R.anchor.idx === targetIndex) { R.anchor.hit = true; targetIndex++; flash('ナイス！', 600); sfxItem(); refreshTargets(); }
+      if (R.anchor.star && !R.anchor.star.got) { const it = R.anchor.star; it.got = true; it.mesh.visible = false; itemsGot++; sfxItem(); flash('★ ゲット！', 700); }
+      if (R.anchor.target && !R.anchor.hit) { R.anchor.hit = true; flash('ナイス！', 600); sfxItem(); refreshTargets(); }
     }
   } else if (R.phase === 'attached') {
     R.attachT += dt;
@@ -898,21 +875,23 @@ function updateItems(dt) {
   for (const it of world.items) {
     if (it.got) continue;
     it.spin += dt * 2.5; it.mesh.rotation.y = it.spin;
-    if (it.p.distanceTo(P.pos) < FEEL.itemRadius) {
-      it.got = true; it.mesh.visible = false; itemsGot++;
-      sfxItem();
-    }
+    getAnchorPos(it.a, it.mesh.position);   // ゆれる草や ふうせんにも ついていく
+    it.mesh.scale.setScalar(1.7 + Math.sin(G.elapsed * 6 + it.spin) * 0.15);
   }
-  // 通りすぎた まとは とばして 次へ
-  const cur = world.targets[targetIndex];
-  if (cur && P.pos.z > cur.z + 6) { targetIndex++; refreshTargets(); }
+  // 光らせる まと＝自分より前にある いちばん近い まと（手前に落ちても かならず とどく）
+  if (world.targets.length) {
+    let ni = world.targets.findIndex(a => a.z > P.pos.z + 4);
+    if (ni < 0) ni = world.targets.length;
+    if (ni !== targetIndex) { targetIndex = ni; refreshTargets(); }
+  }
   if (!finished && P.pos.z >= world.L) finish();
 }
 function refreshTargets() {
   if (!world) return;
   world.targets.forEach((a, i) => {
-    a.mat.color.setHex(i < targetIndex ? 0x999999 : 0xffffff);
-    a.mat.opacity = i < targetIndex ? 0.5 : 1;
+    const done = i < targetIndex || a.hit;
+    a.mat.color.setHex(done ? 0x999999 : 0xffffff);
+    a.mat.opacity = done ? 0.55 : 1;
   });
   const cur = world.targets[targetIndex];
   document.getElementById('btnL').classList.toggle('call', !!(cur && cur.side === 1 && state === 'playing'));
@@ -993,7 +972,8 @@ function updateVisuals(dt) {
     r.visible = !!show;
     if (show) {
       getAnchorPos(a, _ap); r.position.copy(_ap); r.quaternion.copy(camera.quaternion);
-      r.scale.setScalar(0.6 + camera.position.distanceTo(_ap) * 0.032 + Math.sin(G.elapsed * 8) * 0.06);
+      const starOn = a.star && !a.star.got;   // ★を ねらえている ときは 輪を 大きく
+      r.scale.setScalar((0.6 + camera.position.distanceTo(_ap) * 0.032 + Math.sin(G.elapsed * (starOn ? 14 : 8)) * 0.06) * (starOn ? 1.6 : 1));
     }
   }
   // まとの光
