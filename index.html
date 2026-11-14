@@ -99,6 +99,18 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px}
 .big:active{transform:translateY(4px);box-shadow:0 1px 0 var(--navy)}
 @media (max-height:700px){ .step svg{height:80px} .lead{margin-bottom:12px} }
 @media (max-width:760px){ .stage{width:160px} .pill{font-size:16px;padding:5px 10px} .divider{display:none} }
+
+/* ==== スマホ用パネル調整：スマホ（画面が低いとき）だけに効く。iPadには影響しない ==== */
+@media (orientation:landscape) and (max-height:500px), (orientation:portrait) and (max-height:700px){
+  .overlay{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .overlay > :first-child{margin-top:auto}
+  .overlay > :last-child{margin-bottom:auto}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .overlay{padding:10px}
+  .stage{width:150px;min-height:120px}
+  .stage .band{height:40px;line-height:40px;font-size:26px}
+}
 </style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }
